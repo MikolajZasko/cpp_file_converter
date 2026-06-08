@@ -49,6 +49,14 @@ private:
     /// @brief stores the current selected valid output extension (with ".")
     std::string extension_{};
 
+    /// @brief stores the file paths to be converted
+    /// (can store both absolute paths and relative paths, dependent on #directory_)
+    std::vector<std::string> files_{};
+
+    /// @brief stores the absolute path to the directory that the input files are in
+    std::string directory_{};
+
+
     // helper functions
     //
     // console helpers
@@ -61,20 +69,33 @@ private:
     /// @brief waits for user to press "enter"
     static void wait_enter_();
 
-    /// @brief waits for string input, places it in #input_
+    /// @brief waits for single string input, places it in #input_
     /// @param message tells the user what we expect
-    void get_input_(const std::string& message);
+    void read_input_(const std::string& message);
 
     /// @brief can modify #input_ (adds a "." if not present)
     /// @returns true if #input_ can be a valid extension
     bool validate_extension_();
 
+    /// @brief checks if directory exists
+    bool validate_directory() const;
+
     /// @brief displays an error message and waits for "enter" key
     /// @param message an error message to be displayed
     void display_error_(const std::string& message);
 
-    /// @brief reads files from input, accepted separators: " " / "," / " , "
+    /// @brief reads files from input, and places found files to #files  \n
+    /// accepted separators: ',' / ' , ' etc.
     void read_files_();
+
+    /// @brief
+    void read_directory();
+
+    /// returns a string containing all files separated by \n
+    std::string flatten_files_() const;
+
+    /// @brief removes redundant whitespaces / C++20 ranges split - ai
+    static std::string trim_(const std::string&);
 
     // menu handling
 

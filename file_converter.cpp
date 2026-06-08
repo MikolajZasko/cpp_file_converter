@@ -7,6 +7,8 @@
 #include <limits>
 #include <vector>
 #include <opencv2/opencv.hpp>
+#include <ranges>
+#include <filesystem>
 
 /**
  * @brief creates menu, based on the options and title
@@ -116,8 +118,9 @@ void file_converter::wait_enter_() {
     std::cin.get();
 }
 
-/// @brief waits for string input, places it in #input_
-void file_converter::get_input_(const std::string& message) {
+/// @brief waits for single string input, places it in #input_
+/// @param message tells the user what we expect
+void file_converter::read_input_(const std::string& message) {
 
     // display the message
     std::cout << "Enter " << message << " :" << std::endl;
@@ -125,7 +128,7 @@ void file_converter::get_input_(const std::string& message) {
     // wait for "enter" key
     std::cin.get();
 
-    // write directly do #input_
+    // write directly to #input_
     std::getline(std::cin, input_);
 }
 
@@ -167,9 +170,58 @@ void file_converter::display_error_(const std::string &message) {
     wait_enter_();
 }
 
-/// @brief reads files from input, accepted separators: " " / "," / " , "
+/// @brief reads files from input, and places found files to #files  \n
+/// accepted separators: ',' / ' , ' etc.
 void file_converter::read_files_() {
 
+    // read input directly to #input_
+    read_input_("files, accepted separators: ',' / ' , ' etc.");
+
+    // Split input by "," and trim each token
+    for (const auto word : std::views::split(input_, ',')) {
+        // Convert subrange to a temporary string to pass to trim_
+        std::string temp_word(word.begin(), word.end());
+
+        // Trim it and push it to the vector
+        files_.emplace_back(trim_(temp_word));
+    }
+}
+
+void file_converter::read_directory() {
+
+    // read input directly to #input_
+    read_input_("directory, provide absolute path");
+
+    // check if directory exists
+    if (validate_directory()) {
+        directory_ = input_;
+    }
+    else {
+        display_error_("Directory: '" + input_ + "' does not exist !!!");
+    }
+}
+
+/// returns a string containing all files separated by \n
+std::string file_converter::flatten_files_() const{
+    std::string s;
+    for (const auto& file : files_) {
+        s += "-> " + file + "\n";
+    }
+    return s;
+}
+
+/// @brief removes redundant whitespaces / C++20 ranges split - ai
+std::string file_converter::trim_(const std::string& r) {
+    // 1. Drop leading spaces
+    auto leading = r | std::views::drop_while([](unsigned char ch) { return std::isspace(ch); });
+
+    // 2. Reverse, drop trailing spaces, and reverse back
+    auto trailing = leading | std::views::reverse
+                            | std::views::drop_while([](unsigned char ch) { return std::isspace(ch); })
+                            | std::views::reverse;
+
+    // 3. Construct and return a new std::string from the view
+    return std::string(trailing.begin(), trailing.end());
 }
 
 // menu handling
@@ -183,8 +235,7 @@ void file_converter::main_menu_init_() {
     // prep the "Main menu"
     prep_menu("Main menu", std::vector<std::string>{
         "Select output extension (ex: .png), current: " + current_extension,
-        "Provide files"
-    });
+        "Manage files \n current directory: " + directory_ + "\n current files: \n" + flatten_files_() });
 
     // start the "Main menu"
     const int main_menu_result = menu();
@@ -206,7 +257,10 @@ void file_converter::main_menu_init_() {
 void file_converter::extension_menu_init_() {
 
     // prep the "Select output extension (ex: .png)"
-    prep_menu("Select output extension (ex: .png)", std::vector<std::string>{"See the extensions supported", "Provide the string of the output extension"});
+    prep_menu("Select output extension (ex: .png)", std::vector<std::string>{
+        "See the extensions supported",
+        "Provide the string of the output extension"
+    });
 
     // start the "Select output extension (ex: .png)"
     const int result = menu();
@@ -227,7 +281,7 @@ void file_converter::extension_menu_init_() {
     }
     if (result == 2) {
         // get input
-        get_input_("extension (formats: png/.png accepted)");
+        read_input_("extension (formats: png/.png accepted)");
 
         // validate if input makes sense
         if (validate_extension_()) {
@@ -250,12 +304,23 @@ void file_converter::extension_menu_init_() {
     }
 }
 
+/// @brief checks if directory exists
+bool file_converter::validate_directory() const {
+
+    // convert to std::filesystem::path
+    const std::filesystem::path path(input_);
+
+    // Checks if the path exists AND is a directory
+    return std::filesystem::is_directory(input_);
+}
+
 /// @brief collects data about files to convert
 void file_converter::file_menu_init_() {
     // prep the "Select output extension (ex: .png)"
     prep_menu("Provide files", std::vector<std::string>{
-        "Files with absolute path",
-        "Directory + relative file path's"
+        "Add files with absolute path",
+        "Provide a directory + relative file path's",
+        "Clear files_ vector"
     });
 
     // start the "Select output extension (ex: .png)"
@@ -267,7 +332,33 @@ void file_converter::file_menu_init_() {
         return;
     }
     if (result == 1) {
-        // read
+        // read files from input to files_
+        read_files_();
+
+        // go back to Main menu
+        main_menu_init_();
+        return;
+    }
+    if (result == 2) {
+        // read files from input to files_
+        read_files_();
+
+        // read the directory
+        read_directory();
+
+        // go back to Main menu
+        main_menu_init_();
+        return;
+    }
+
+    if (result == 3) {
+
+        // clear vector and redo the menu
+        files_.clear();
+
+        file_menu_init_();
+
+        return;
     }
 
 }
