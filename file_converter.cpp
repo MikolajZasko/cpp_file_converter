@@ -6,6 +6,7 @@
 #include <iostream>
 #include <limits>
 #include <vector>
+#include <opencv2/opencv.hpp>
 
 /**
  * @brief creates menu, based on the options and title
@@ -101,23 +102,76 @@ void file_converter::prep_menu_(std::string new_title, std::vector<std::string> 
 /// @brief initializes the file_converter / main entry point
 void file_converter::init_() {
 
-    // prep the main menu
-    prep_menu_("Main menu", std::vector<std::string>{"Select conversion type"});
+    // prep the Main menu
+    prep_menu_("Main menu", std::vector<std::string>{"Select output extension (ex: .png)"});
 
-    // start the main menu
+    // start the Main menu
     const int main_menu_result = menu();
 
-    //
+    // 
     if (main_menu_result == 0) {
         exit(0);
     }
     if (main_menu_result == 1) {
-        //
-        conversion_init_();
+        extension_init_();
     }
 }
 
 /// @brief handles the conversion type selection menu
-void file_converter::conversion_init_() {
+void file_converter::extension_init_() {
 
+
+    // prep the "Select output extension (ex: .png)"
+    prep_menu_("Select output extension (ex: .png)", std::vector<std::string>{"See the extensions supported", "Provide the string of the extension"});
+
+    //
+    const int result = menu();
+
+    if (result == 0) {
+        // go back to Main menu
+        init_();
+        return;
+    }
+    if (result == 1) {
+        std::cout << cv::getBuildInformation() << std::endl;
+
+        // wait for any input
+        wait_enter_();
+
+        init_();
+        return;
+    }
+    if (result == 2) {
+        // get input
+        get_input_("extension (no '.' needed, example input: png)");
+
+        // validate if input makes sense
+
+    }
+}
+
+/// @brief waits for user to press "enter"
+void file_converter::wait_enter_() {
+
+    // display message
+    std::cout << "Press Enter to continue...";
+
+    // clears any leftover characters in the input buffer (like a previous newline) - ai
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+    // waits for the user to hit Enter - ai
+    std::cin.get();
+}
+
+/// @brief waits for string input, places it in #input_
+void file_converter::get_input_(const std::string& message) {
+
+    // display the message
+    std::cout << "Enter " << message << " :" << std::endl;
+
+    // wait for "enter" key
+    std::cin.get();
+
+    // write directly do #input_
+    std::getline(std::cin, input_);
 }
