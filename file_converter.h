@@ -13,7 +13,7 @@ public:
     // constructors
 
     /// @brief default constructor
-    file_converter() { init_(); };
+    file_converter() { main_menu_init_(); };
 
     // getters
 
@@ -26,7 +26,11 @@ public:
      * * returns 1 => option on index 0 in vector options
      */
     int menu();
-
+    
+    // setters
+    
+    /// @brief preps the next menu #title_ and #options_
+    void prep_menu(std::string new_title, std::vector<std::string> new_options);
 
 
 private:
@@ -42,24 +46,44 @@ private:
     /// @brief stores the current input
     std::string input_{};
 
+    /// @brief stores the current selected valid output extension (with ".")
+    std::string extension_{};
+
     // helper functions
+    //
+    // console helpers
 
     /// @brief clears the console
     void clear_();
+
+    // input handling
 
     /// @brief waits for user to press "enter"
     static void wait_enter_();
 
     /// @brief waits for string input, places it in #input_
-    /// @arg message tells the user what we expect
-    void get_input_(const std::string&);
+    /// @param message tells the user what we expect
+    void get_input_(const std::string& message);
 
-    /// @brief preps the next menu #title_ and #options_
-    void prep_menu_(std::string new_title, std::vector<std::string> new_options);
+    /// @brief can modify #input_ (adds a "." if not present)
+    /// @returns true if #input_ can be a valid extension
+    bool validate_extension_();
+
+    /// @brief displays an error message and waits for "enter" key
+    /// @param message an error message to be displayed
+    void display_error_(const std::string& message);
+
+    /// @brief reads files from input, accepted separators: " " / "," / " , "
+    void read_files_();
+
+    // menu handling
 
     /// @brief initializes the file_converter / main entry point
-    void init_();
+    void main_menu_init_();
 
-    /// @brief handles the conversion extenstion selection menu
-    void extension_init_();
+    /// @brief handles the conversion extension selection menu
+    void extension_menu_init_();
+
+    /// @brief collects data about files to convert
+    void file_menu_init_();
 };
