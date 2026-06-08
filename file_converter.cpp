@@ -187,6 +187,7 @@ void file_converter::read_files_() {
     }
 }
 
+// !!!??? sth is wrong here? + docstring???? !!! - gemini fix splitting strings in cpp
 void file_converter::read_directory() {
 
     // read input directly to #input_
@@ -307,8 +308,8 @@ void file_converter::extension_menu_init_() {
 /// @brief checks if directory exists
 bool file_converter::validate_directory() const {
 
-    // convert to std::filesystem::path
-    const std::filesystem::path path(input_);
+    // // convert to std::filesystem::path
+    // const std::filesystem::path path(input_);
 
     // Checks if the path exists AND is a directory
     return std::filesystem::is_directory(input_);
