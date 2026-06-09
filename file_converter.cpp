@@ -10,6 +10,26 @@
 #include <ranges>
 #include <filesystem>
 
+// constructors
+
+/// @brief default constructor
+file_converter::file_converter() {
+
+    // init the default out directory
+    std::filesystem::path source_file_path(__FILE__);
+
+    // get just the directory (without man.exe)
+    source_file_path.remove_filename();
+
+    source_file_path = source_file_path/ "out";
+
+    out_directory_ = source_file_path.string();
+
+    // init the main menu
+    main_menu_init_();
+}
+
+
 /**
  * @brief creates menu, based on the options and title
  * first option is always "Go back" - index 0
@@ -29,14 +49,14 @@ int file_converter::menu() {
         clear_();
 
         // print title
-        std::cout << title_ << std::endl << std::endl;
+        std::cout << title_ << std::endl << std::endl << std::endl;
 
         // print each option with a corresponding int
         std::size_t index = 0;
         const std::size_t vec_size = options_.size();
 
         // first option is always "Go back"
-        std::cout << "0) Go back" << std::endl;
+        std::cout << "0) Go back" << std::endl << std::endl;
 
         while (index < vec_size) {
 
@@ -44,7 +64,7 @@ int file_converter::menu() {
             std::cout << index + 1 << ") ";
 
             // print option
-            std::cout << options_[index] << std::endl;
+            std::cout << options_[index] << std::endl << std::endl;
 
             // increment index
             index++;
@@ -93,6 +113,104 @@ void file_converter::prep_menu(std::string new_title, std::vector<std::string> n
 
 }
 
+// conversion process
+
+/// @brief starts the conversion process
+void file_converter::conversion_init() {
+
+    // verify the directory if user entered in_directory_
+    if (! in_directory_.empty()) {
+        if (! validate_directory(in_directory_)) {
+            display_error_("the provided directory: '" + in_directory_ + "' is invalid/does not exist !!!");
+
+            main_menu_init_();
+
+            return;
+        }
+    }
+
+    // check if user inserted an extension
+    if (extension_.empty()) {
+        display_error_("no extension provided");
+
+        main_menu_init_();
+
+        return;
+    }
+
+    // check if user provided any files
+    if (files_.empty()) {
+        display_error_("no files provided");
+
+        main_menu_init_();
+
+        return;
+    }
+
+    // prep filesystem::path variables
+    const std::filesystem::path in_directory_path(in_directory_);
+    const std::filesystem::path out_directory_path(out_directory_);
+    std::filesystem::path new_full_path {};
+
+    // iterate through files
+    for (auto old_file_string : files_) {
+
+        // convert string -> filesystem::path
+        std::filesystem::path old_file_path(old_file_string);
+
+        // get just the filename
+        std::filesystem::path filename = old_file_path.filename();
+
+        // replace filename extension
+        filename.replace_extension(extension_);
+
+        // check if directory was provided
+        if (! in_directory_.empty()) {
+
+            // here we assume that relative paths were provided
+            //
+            // create the old path
+            old_file_path = in_directory_path / old_file_path;
+            
+            // create the new path
+            new_full_path = out_directory_path / filename;
+            
+        }
+        else {
+
+            // here we assume that full paths were provided
+            //
+            // create the new path
+            new_full_path = out_directory_path / filename;
+
+        }
+
+        // read the old file from disk
+        cv::Mat image = cv::imread(old_file_path.string(), cv::IMREAD_COLOR);
+
+        // check if image was loaded
+        if (image.empty()) {
+            display_error_("could not read the image: " + old_file_path.string());
+            continue;
+        }
+
+        // try to write the converted file (openCV handles the conversion based on extension)
+        const bool success = cv::imwrite(new_full_path.string(), image);
+
+        if (!success) {
+            display_error_("OpenCV failed to write the image to:" + new_full_path.string());
+            continue;
+        }
+        else {
+            display_success_("image: '" + new_full_path.string() + "' converted successfully");
+        }
+    }
+
+    wait_enter_();
+
+    main_menu_init_();
+}
+
 // console helpers
 
 /// @brief clears the console
@@ -125,8 +243,10 @@ void file_converter::read_input_(const std::string& message) {
     // display the message
     std::cout << "Enter " << message << " :" << std::endl;
 
-    // wait for "enter" key
-    std::cin.get();
+    // safe clear ???
+    if (std::cin.peek() == '\n') {
+        std::cin.ignore();
+    }
 
     // write directly to #input_
     std::getline(std::cin, input_);
@@ -164,10 +284,18 @@ bool file_converter::validate_extension_() {
 void file_converter::display_error_(const std::string &message) {
 
     // display the message
-    std::cout << "Error: " << message << std::endl;
+    std::cout << "❌ Error: " << message << std::endl;
 
     // wait for "enter" key
     wait_enter_();
+}
+
+/// @brief displays a success message
+/// @param message a success message to be displayed
+void file_converter::display_success_(const std::string &message) {
+
+    // display the message
+    std::cout << "✅ Success: " << message << std::endl;
 }
 
 /// @brief reads files from input, and places found files to #files  \n
@@ -183,19 +311,19 @@ void file_converter::read_files_() {
         std::string temp_word(word.begin(), word.end());
 
         // Trim it and push it to the vector
-        files_.emplace_back(trim_(temp_word));
+        files_.insert(trim_(temp_word));
     }
 }
 
-// !!!??? sth is wrong here? + docstring???? !!! - gemini fix splitting strings in cpp
+/// @brief reads the input directory from std input
 void file_converter::read_directory() {
 
     // read input directly to #input_
     read_input_("directory, provide absolute path");
 
     // check if directory exists
-    if (validate_directory()) {
-        directory_ = input_;
+    if (validate_directory(input_)) {
+        in_directory_ = input_;
     }
     else {
         display_error_("Directory: '" + input_ + "' does not exist !!!");
@@ -204,7 +332,14 @@ void file_converter::read_directory() {
 
 /// returns a string containing all files separated by \n
 std::string file_converter::flatten_files_() const{
-    std::string s;
+
+    // if no files selected, display "none"
+    if (files_.empty()) {
+        return "none";
+    }
+
+    // else, join all files
+    std::string s = "\n";
     for (const auto& file : files_) {
         s += "-> " + file + "\n";
     }
@@ -232,11 +367,25 @@ void file_converter::main_menu_init_() {
 
     // check if we have already an extension
     const std::string current_extension = (extension_.empty()) ? "none" : extension_;
+    const std::string current_in_directory = (in_directory_.empty()) ? "none" : in_directory_;
+    const std::string current_out_directory = (out_directory_.empty()) ? "none" : out_directory_;
+
+    // some ascii artwork
+    std::string file_ascii =
+    " ______           ______  \n"
+    "| |__| |         | |__| | \n"
+    "|  ()  |   ==>   |  ()  | \n"
+    "|______|         |______|   ";
 
     // prep the "Main menu"
-    prep_menu("Main menu", std::vector<std::string>{
+    prep_menu("Main menu - file converter \n" + file_ascii, std::vector<std::string>{
         "Select output extension (ex: .png), current: " + current_extension,
-        "Manage files \n current directory: " + directory_ + "\n current files: \n" + flatten_files_() });
+        "Manage files \n current input directory: "
+        + current_in_directory
+        + "\n current output directory: "  + current_out_directory
+        +  "\n current files: " + flatten_files_(),
+        "Convert the files"
+    });
 
     // start the "Main menu"
     const int main_menu_result = menu();
@@ -250,6 +399,10 @@ void file_converter::main_menu_init_() {
     }
     if (main_menu_result == 2) {
         file_menu_init_();
+        return;
+    }
+    if (main_menu_result == 3) {
+        conversion_init();
         return;
     }
 }
@@ -306,22 +459,23 @@ void file_converter::extension_menu_init_() {
 }
 
 /// @brief checks if directory exists
-bool file_converter::validate_directory() const {
+bool file_converter::validate_directory(const std::string& dir) const {
 
     // // convert to std::filesystem::path
     // const std::filesystem::path path(input_);
 
     // Checks if the path exists AND is a directory
-    return std::filesystem::is_directory(input_);
+    return std::filesystem::is_directory(dir);
 }
 
 /// @brief collects data about files to convert
 void file_converter::file_menu_init_() {
     // prep the "Select output extension (ex: .png)"
     prep_menu("Provide files", std::vector<std::string>{
-        "Add files with absolute path",
-        "Provide a directory + relative file path's",
-        "Clear files_ vector"
+        "Add files",
+        "Provide a directory (and relative file path's)",
+        "Clear files_ vector",
+        "Clear in_directory_ string"
     });
 
     // start the "Select output extension (ex: .png)"
@@ -341,9 +495,6 @@ void file_converter::file_menu_init_() {
         return;
     }
     if (result == 2) {
-        // read files from input to files_
-        read_files_();
-
         // read the directory
         read_directory();
 
@@ -356,6 +507,14 @@ void file_converter::file_menu_init_() {
 
         // clear vector and redo the menu
         files_.clear();
+
+        file_menu_init_();
+
+        return;
+    }
+
+    if (result == 4) {
+        in_directory_.clear();
 
         file_menu_init_();
 

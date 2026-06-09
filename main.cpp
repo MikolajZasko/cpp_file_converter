@@ -7,7 +7,16 @@
 #include <vector>
 #include <iostream>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 int main() {
+
+    #ifdef _WIN32
+        // Set console output code page to UTF-8 - so I can display emojis :D
+        SetConsoleOutputCP(CP_UTF8);
+    #endif
 
     // start 1 instance of the file converter
     file_converter f;
