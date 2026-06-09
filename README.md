@@ -18,6 +18,24 @@ A simple file converter program \
 
 ---
 
+## Quick setup (Linux):
+
+```bash
+# install OpenCV
+sudo apt-get install libopencv-dev
+```
+
+---
+
+## Quick setup (MacOs):
+
+```bash
+# install OpenCV
+brew install opencv
+```
+
+---
+
 ### Clion integration:
 1) Ensure "File | Settings | Build, Execution, Deployment | Toolchains" is set to Visual Studio
 2) Example CmakeLists.txt:
@@ -50,24 +68,6 @@ target_link_libraries(file_converter ${OpenCV_LIBS})
 
 ---
 
-## Quick setup (Linux):
-
-```bash
-# install OpenCV
-sudo apt-get install libopencv-dev
-```
-
----
-
-## Quick setup (MacOs):
-
-```bash
-# install OpenCV
-brew install opencv
-```
-
----
-
 ## Usage
 ```bash
 # for help
@@ -76,7 +76,8 @@ fileconverter -h
 # open in menu mode (manually select files, provide extension etc)
 fileconverter
 
-# quickly conve
+# quickly convert files: <extension> <full_file_paths>
+fileconverter .png /path/to/file1 /path/to/file2 ...
 ```
 
 ---
