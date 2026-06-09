@@ -1,5 +1,8 @@
 # cpp_file_converter
-An extra project for "pp2" 
+A simple file converter program \
+(An extra project for "pp2")
+
+---
 
 ## Quick setup (Windows):
 
@@ -12,6 +15,8 @@ An extra project for "pp2"
 5) Environment variables → System Variables → Path → Edit → New
 6) Paste the path of the bin folder (C:\opencv\opencv\build\x64\vc16\bin - if extracted to C:\opencv)
 7) Restart PC / IDE
+
+---
 
 ### Clion integration:
 1) Ensure "File | Settings | Build, Execution, Deployment | Toolchains" is set to Visual Studio
@@ -43,12 +48,40 @@ target_link_libraries(file_converter ${OpenCV_LIBS})
 #include <opencv2/opencv.hpp>
 ```
 
+---
+
 ## Quick setup (Linux):
 
 ```bash
 # install OpenCV
 sudo apt-get install libopencv-dev
 ```
+
+---
+
+## Quick setup (MacOs):
+
+```bash
+# install OpenCV
+brew install opencv
+```
+
+---
+
+## Usage
+```bash
+# for help
+fileconverter -h
+
+# open in menu mode (manually select files, provide extension etc)
+fileconverter
+
+# quickly conve
+```
+
+---
+
+### Project structure
 
 ```text
 file-converter
@@ -57,8 +90,8 @@ file-converter
 ├── 🧱 file_converter.cpp         # Core implementation logic
 ├── 📑 file_converter.h           # Header declarations
 ├── 🚀 main.cpp                   # Application entry point
-├── 📖 README.md                  # Project documentation
-├── 📁 cmake-build-debug/         # CMake debug build directory
-│   └── 🖥️ file_converter.exe     # Compiled Windows executable
-└── 📁 out/                       # Output directory for artifacts/data
+├── 📖 README.md                  # This file
+├── 📁 cmake-build-debug/         # CMake debug build directory (Windows)
+│   └── 🖥️ file_converter.exe     # Compiled Windows executable (Windows)
+└── 📁 out/                       # Default output directory
 ```

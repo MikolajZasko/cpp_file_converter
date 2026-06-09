@@ -26,6 +26,8 @@ file_converter::file_converter() {
 
     out_directory_ = source_file_path.string();
 
+    menu_ = true;
+
     // init the main menu
     main_menu_init_();
 }
@@ -222,10 +224,10 @@ void file_converter::conversion_init() {
             //
             // create the old path
             old_file_path = in_directory_path / old_file_path;
-            
+
             // create the new path
             new_full_path = out_directory_path / filename;
-            
+
         }
         else {
 
