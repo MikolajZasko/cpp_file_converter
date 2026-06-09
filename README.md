@@ -49,3 +49,16 @@ target_link_libraries(file_converter ${OpenCV_LIBS})
 # install OpenCV
 sudo apt-get install libopencv-dev
 ```
+
+```text
+file-converter
+├── 🙈 .gitignore                 # Git ignore rules
+├── 📐 CMakeLists.txt             # CMake build configuration
+├── 🧱 file_converter.cpp         # Core implementation logic
+├── 📑 file_converter.h           # Header declarations
+├── 🚀 main.cpp                   # Application entry point
+├── 📖 README.md                  # Project documentation
+├── 📁 cmake-build-debug/         # CMake debug build directory
+│   └── 🖥️ file_converter.exe     # Compiled Windows executable
+└── 📁 out/                       # Output directory for artifacts/data
+```

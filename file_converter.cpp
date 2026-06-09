@@ -9,6 +9,7 @@
 #include <opencv2/opencv.hpp>
 #include <ranges>
 #include <filesystem>
+#include <algorithm>
 
 // constructors
 
@@ -27,6 +28,56 @@ file_converter::file_converter() {
 
     // init the main menu
     main_menu_init_();
+}
+
+/// @brief constructor with ext name and files
+file_converter::file_converter(std::vector<std::string>& v) {
+
+    // init the default out directory
+    std::filesystem::path source_file_path(__FILE__);
+
+    // get just the directory (without man.exe)
+    source_file_path.remove_filename();
+
+    source_file_path = source_file_path/ "out";
+
+    out_directory_ = source_file_path.string();
+
+    // get the ext
+    extension_ = v[1];
+
+    // remove the ext from the vector and the script path
+    //
+    // Overwrite the target with the last element
+    v[0] = v.back();
+
+    // Remove the duplicate last element
+    v.pop_back();
+
+    // Overwrite the target with the last element
+    v[1] = v.back();
+
+    // Remove the duplicate last element
+    v.pop_back();
+
+    // insert vec values to set
+    files_.insert(v.begin(), v.end());
+
+    // debugging stuff
+    // std::cout << extension_ << std::endl;
+    // std::cout << out_directory_ << std::endl;
+    //
+    // for (auto& e : v) {
+    //     std::cout << e << std::endl;
+    // }
+
+    // turn off the menus and popups
+    menu_ = false;
+
+    // start the conversion
+    conversion_init();
+
+    exit(0);
 }
 
 
@@ -206,9 +257,14 @@ void file_converter::conversion_init() {
         }
     }
 
-    wait_enter_();
+    if (menu_) {
+        wait_enter_();
 
-    main_menu_init_();
+        main_menu_init_();
+    }
+    else {
+        exit(0);
+    }
 }
 
 // console helpers
@@ -226,14 +282,17 @@ void file_converter::clear_() {
 /// @brief waits for user to press "enter"
 void file_converter::wait_enter_() {
 
-    // display message
-    std::cout << "Press Enter to continue...";
+    // check if menus disabled
+    if (menu_) {
+        // display message
+        std::cout << "Press Enter to continue...";
 
-    // clears any leftover characters in the input buffer (like a previous newline) - ai
-    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        // clears any leftover characters in the input buffer (like a previous newline) - ai
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
-    // waits for the user to hit Enter - ai
-    std::cin.get();
+        // waits for the user to hit Enter - ai
+        std::cin.get();
+    }
 }
 
 /// @brief waits for single string input, places it in #input_
@@ -283,19 +342,23 @@ bool file_converter::validate_extension_() {
 /// @param message an error message to be displayed
 void file_converter::display_error_(const std::string &message) {
 
+
     // display the message
     std::cout << "❌ Error: " << message << std::endl;
 
-    // wait for "enter" key
-    wait_enter_();
+    // check if popups disabled
+    if (menu_) {
+        // wait for "enter" key
+        wait_enter_();
+    }
 }
 
 /// @brief displays a success message
 /// @param message a success message to be displayed
 void file_converter::display_success_(const std::string &message) {
 
-    // display the message
-    std::cout << "✅ Success: " << message << std::endl;
+        // display the message
+        std::cout << "✅ Success: " << message << std::endl;
 }
 
 /// @brief reads files from input, and places found files to #files  \n

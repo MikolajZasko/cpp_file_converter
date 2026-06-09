@@ -16,6 +16,9 @@ public:
     /// @brief default constructor
     file_converter();
 
+    /// @brief constructor with ext name and files
+    file_converter(std::vector<std::string>&);
+
     // getters
 
     /**
@@ -64,6 +67,9 @@ private:
     /// @brief stores the output directory
     std::string out_directory_{};
 
+    /// @brief if false no menus are present
+    bool menu_;
+
     // helper functions
     //
     // console helpers
@@ -74,7 +80,7 @@ private:
     // input handling
 
     /// @brief waits for user to press "enter"
-    static void wait_enter_();
+    void wait_enter_();
 
     /// @brief waits for single string input, places it in #input_
     /// @param message tells the user what we expect
