@@ -61,15 +61,15 @@ file_converter::file_converter(std::vector<std::string>& v) {
     }
 
     // debugging stuff
-    // std::cout << extension_ << std::endl;
-    // std::cout << out_directory_ << std::endl;
-    //
-    // for (auto& e : v) {
-    //     std::cout << e << std::endl;
-    // }
+    std::cout << extension_ << std::endl;
+    std::cout << out_directory_ << std::endl;
+
+    for (auto& e : v) {
+        std::cout << e << std::endl;
+    }
 
     // check if any files provided
-    if (v.empty()) {
+    if (v.size() == 0) {
         // read the in_directory_ - will attempt to convert all files inside (including nested folders)
         read_directory_contents_(in_directory_);
 
@@ -222,39 +222,29 @@ void file_converter::conversion_init() {
         // convert string -> filesystem::path
         fs::path old_file_path(old_file_string);
 
-        // // get just the filename
-        // fs::path filename = old_file_path.filename();
+        fs::path old_relative_filepath{};
 
-        // get the old relative filepath
-        fs::path old_relative_filepath = fs::relative(old_file_path,in_directory_path);
+        // check if was relative laready
+        if (! old_file_path.is_relative()) {
+            // get the old relative filepath
+            old_relative_filepath = fs::relative(old_file_path,in_directory_path);
+        } else {
+            old_relative_filepath = old_file_path;
+        }
 
         // replace filename extension
         old_relative_filepath.replace_extension(extension_);
 
-        // check if directory was provided
-        if (! in_directory_.empty()) {
+        // check if it is a relative path
+        // if not it is a fullpath, no changes needed
+        if (old_file_path.is_relative()) {
 
-            // check if it is a relative path
-            // if not it is a fullpath, no changes needed
-            if (old_file_path.is_relative()) {
-
-                // create the old path - from relative path
-                old_file_path = in_directory_path / old_file_path;
-            }
-
-
-            // create the new path
-            new_full_path = out_directory_path / old_relative_filepath;
-
+            // create the old path - from relative path
+            old_file_path = in_directory_path / old_file_path;
         }
-        else {
 
-            // here we assume that full paths were provided
-            //
-            // create the new path
-            new_full_path = out_directory_path / old_relative_filepath;
-
-        }
+        // create the new path
+        new_full_path = out_directory_path / old_relative_filepath;
 
         // check if we have the filestructure required, if not create the directories needed
         if (! validate_directory_(new_full_path.parent_path().string())) {
