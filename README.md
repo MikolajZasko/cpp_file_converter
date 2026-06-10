@@ -1,5 +1,5 @@
 # cpp_file_converter ⚙️
-A simple file converter program \
+A simple file converter program - supports bulk conversions \
 (An extra project for "pp2")
 
 ---
@@ -75,16 +75,16 @@ target_link_libraries(file_converter ${OpenCV_LIBS})
 
 ## Usage 🚀
 ```bash
+# quickest way to convert files:
+# fileconverter <output_format> <input_directory>
+# this will read recursively through the dir structure and try to convert all files encountered
+fileconverter .png /input/dir/path
+
 # for help
 fileconverter -h
 
 # open in menu mode (manually select files, provide extension etc)
 fileconverter
-
-# quickest way to convert files:
-# fileconverter <output_format> <input_directory>
-# this will read recursively through the dir structure and try to convert all files encountered
-fileconverter .png /input/dir/path
 
 # convert files: <output_format> <input_directory> <relative file paths>
 fileconverter .png /input/dir/path  Image1 Image2 ...
@@ -94,7 +94,6 @@ fileconverter .png /input/dir/path  Image1 Image2 ...
 
 ## External libraries used 📦
 - OpenCV (5.0.0 - at the time of creation)
-- std::filesystem
 
 ---
 
