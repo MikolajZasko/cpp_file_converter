@@ -6,12 +6,16 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <opencv2/core/utils/logger.hpp>
 
 #ifdef _WIN32
 #include <windows.h>
 #endif
 
 int main(int argc, char* argv[]) {
+
+    // Set log level to WARNING or ERROR to suppress [INFO] logs
+    cv::utils::logging::setLogLevel(cv::utils::logging::LOG_LEVEL_WARNING);
 
     #ifdef _WIN32
         // Set console output code page to UTF-8 - so I can display emojis :D

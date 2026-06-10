@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 #include <set>
+#include <filesystem>
 
 class file_converter {
 public:
@@ -17,7 +18,7 @@ public:
     file_converter();
 
     /// @brief constructor with ext name, input directory and files
-    file_converter(std::vector<std::string>&);
+    explicit file_converter(std::vector<std::string>&);
 
     // getters
 
@@ -77,21 +78,19 @@ private:
     /// @brief clears the console
     void clear_();
 
-    // input handling
-
-    /// @brief waits for user to press "enter"
-    void wait_enter_();
-
-    /// @brief waits for single string input, places it in #input_
-    /// @param message tells the user what we expect
-    void read_input_(const std::string& message);
+    // validation
 
     /// @brief can modify #input_ (adds a "." if not present)
     /// @returns true if #input_ can be a valid extension
     bool validate_extension_();
 
     /// @brief checks if directory exists
-    bool validate_directory_(const std::string&) const;
+    static bool validate_directory_(const std::string&);
+
+    /// @brief check if file exists
+    static bool validate_file_(const std::string&);
+
+    // info display
 
     /// @brief displays an error message and waits for "enter" key
     /// @param message an error message to be displayed
@@ -105,6 +104,12 @@ private:
     /// @param message an info message to be displayed
     void display_info_(const std::string& message);
 
+    // read input
+
+    /// @brief waits for single string input, places it in #input_
+    /// @param message tells the user what we expect
+    void read_input_(const std::string& message);
+
     /// @brief reads files from input, and places found files to #files  \n
     /// accepted separators: ',' / ' , ' etc.
     void read_files_();
@@ -112,20 +117,31 @@ private:
     /// @brief reads the input directory from std input
     void read_directory_();
 
+    /// @brief attempts to read the contents of the directory,
+    /// if successful places all found files to #files_
+    /// @param dir full path of the directory to be read
+    void read_directory_contents_(const std::string& dir);
+
+    // helpers - misc
+
     /// returns a string containing all files separated by \n
     [[nodiscard]] std::string flatten_files_() const;
 
     /// @brief removes redundant whitespaces / C++20 ranges split - ai
     static std::string trim_(const std::string&);
 
-    /// @brief attempts to read the contents of the directory,
-    /// if successful places all found files to #files_
-    /// @param dir full path of the directory to be read
-    void read_directory_contents_(const std::string& dir);
-
     /// @brief tries to create a directory at a given path
     /// @param dir a fullpath to the created directory
     void create_directory_(const std::string& dir);
+
+    /// @brief waits for user to press "enter"
+    void wait_enter_();
+
+    /// @returns the current timestamp
+    static std::string get_timestamp_();
+
+    /// @brief adds timestamp to #file - Ai powered
+    static void add_timestamp_(std::filesystem::path& original_file_path);
 
     // menu handling
 

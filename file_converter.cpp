@@ -11,13 +11,17 @@
 #include <filesystem>
 #include <algorithm>
 
+// namespaces
+namespace ch = std::chrono;
+namespace fs = std::filesystem;
+
 // constructors
 
 /// @brief default constructor
 file_converter::file_converter() {
 
     // init the default out directory
-    std::filesystem::path source_file_path(__FILE__);
+    fs::path source_file_path(__FILE__);
 
     // get just the directory (without man.exe)
     source_file_path.remove_filename();
@@ -36,7 +40,7 @@ file_converter::file_converter() {
 file_converter::file_converter(std::vector<std::string>& v) {
 
     // init the default out directory
-    std::filesystem::path source_file_path(__FILE__);
+    fs::path source_file_path(__FILE__);
 
     // get just the directory (without man.exe)
     source_file_path.remove_filename();
@@ -208,21 +212,21 @@ void file_converter::conversion_init() {
     }
 
     // prep filesystem::path variables
-    const std::filesystem::path in_directory_path(in_directory_);
-    const std::filesystem::path out_directory_path(out_directory_);
-    std::filesystem::path new_full_path {};
+    const fs::path in_directory_path(in_directory_);
+    const fs::path out_directory_path(out_directory_);
+    fs::path new_full_path {};
 
     // iterate through files
     for (const auto& old_file_string : files_) {
 
         // convert string -> filesystem::path
-        std::filesystem::path old_file_path(old_file_string);
+        fs::path old_file_path(old_file_string);
 
         // // get just the filename
-        // std::filesystem::path filename = old_file_path.filename();
+        // fs::path filename = old_file_path.filename();
 
         // get the old relative filepath
-        std::filesystem::path old_relative_filepath = std::filesystem::relative(old_file_path,in_directory_path);
+        fs::path old_relative_filepath = fs::relative(old_file_path,in_directory_path);
 
         // replace filename extension
         old_relative_filepath.replace_extension(extension_);
@@ -253,7 +257,7 @@ void file_converter::conversion_init() {
         }
 
         // check if we have the filestructure required, if not create the directories needed
-        if (! validate_directory_(new_full_path.parent_path())) {
+        if (! validate_directory_(new_full_path.parent_path().string())) {
             create_directory_(new_full_path.parent_path().string());
         }
 
@@ -264,6 +268,13 @@ void file_converter::conversion_init() {
         if (image.empty()) {
             display_error_("could not read the image: " + old_file_path.string());
             continue;
+        }
+
+        // check if file already exists
+        if (validate_file_(new_full_path.string())) {
+
+            // add a timestamp to the filename
+            add_timestamp_(new_full_path);
         }
 
         // try to write the converted file (openCV handles the conversion based on extension)
@@ -458,8 +469,8 @@ std::string file_converter::trim_(const std::string& r) {
 void file_converter::read_directory_contents_(const std::string &dir) {
 
     try {
-        // loop throug items in dir
-        for (const auto& item : std::filesystem::directory_iterator(dir)) {
+        // loop hrough items in dir
+        for (const auto& item : fs::directory_iterator(dir)) {
 
             // item.path() gives you the full path object
             const auto& current_path = item.path();
@@ -468,12 +479,12 @@ void file_converter::read_directory_contents_(const std::string &dir) {
             const std::string filename = current_path.filename().string();
 
             // Check the type of the item
-            if (std::filesystem::is_directory(current_path)) {
+            if (fs::is_directory(current_path)) {
 
                 // explore the nested dir
                 read_directory_contents_(current_path.string());
 
-            } else if (std::filesystem::is_regular_file(current_path)) {
+            } else if (fs::is_regular_file(current_path)) {
 
                 // insert the file to files_
                 files_.insert(current_path.string());
@@ -483,7 +494,7 @@ void file_converter::read_directory_contents_(const std::string &dir) {
             }
         }
     }
-    catch (const std::filesystem::filesystem_error& e) {
+    catch (const fs::filesystem_error& e) {
         display_info_("Filesystem error: " + std::string(e.what()));
     }
 }
@@ -492,7 +503,7 @@ void file_converter::read_directory_contents_(const std::string &dir) {
 /// @param dir a fullpath to the created directory
 void file_converter::create_directory_(const std::string &dir) {
     try {
-        if (std::filesystem::create_directories(dir)) {
+        if (fs::create_directories(dir)) {
             display_info_("created output directory: " + dir);
         } else {
             display_info_("no directories needed to be created");
@@ -501,6 +512,36 @@ void file_converter::create_directory_(const std::string &dir) {
     catch (const std::exception& e) {
         display_error_("creating directory" + dir + "failed! " + e.what());
     }
+}
+
+/// @returns the current timestamp
+std::string file_converter::get_timestamp_() {
+
+    // process timestamp to local timezone
+    const auto now = ch::system_clock::now();
+
+    const auto local_time = ch::current_zone()->to_local(now);
+
+    auto seconds = ch::floor<ch::seconds>(local_time);
+
+    return std::format("{:%Y%m%d_%H%M%S}", seconds);
+}
+
+/// @brief adds timestamp to #file - Ai powered
+void file_converter::add_timestamp_(fs::path &original_file_path) {
+    // 1. Extract the components
+    const fs::path dir = original_file_path.parent_path();
+    const std::string stem = original_file_path.stem().string();       // File name without extension
+    const std::string ext = original_file_path.extension().string();    // File extension (includes the dot)
+
+    // 2. Generate the timestamp
+    const std::string timestamp = get_timestamp_();
+
+    // 3. Construct the new filename (e.g., "report_20260610_185000.txt")
+    const std::string newFileName = stem + "_" + timestamp + ext;
+
+    // 4. Combine the original directory with the new filename
+    original_file_path = dir / newFileName;
 }
 
 // menu handling
@@ -602,13 +643,17 @@ void file_converter::extension_menu_init_() {
 }
 
 /// @brief checks if directory exists
-bool file_converter::validate_directory_(const std::string& dir) const {
-
-    // // convert to std::filesystem::path
-    // const std::filesystem::path path(input_);
+bool file_converter::validate_directory_(const std::string& dir) {
 
     // Checks if the path exists AND is a directory
-    return std::filesystem::is_directory(dir);
+    return fs::exists(dir) && fs::is_directory(dir);
+}
+
+/// @brief check if file exists
+bool file_converter::validate_file_(const std::string& file) {
+
+    // Checks if the path exists AND is a file
+    return fs::exists(file) && fs::is_regular_file(file);
 }
 
 /// @brief collects data about files to convert
