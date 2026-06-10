@@ -32,7 +32,7 @@ file_converter::file_converter() {
     main_menu_init_();
 }
 
-/// @brief constructor with ext name and files
+/// @brief constructor with ext name, input directory and files
 file_converter::file_converter(std::vector<std::string>& v) {
 
     // init the default out directory
@@ -48,22 +48,13 @@ file_converter::file_converter(std::vector<std::string>& v) {
     // get the ext
     extension_ = v[1];
 
-    // remove the ext from the vector and the script path
-    //
-    // Overwrite the target with the last element
-    v[0] = v.back();
+    // get the input dir
+    in_directory_ = v[2];
 
-    // Remove the duplicate last element
-    v.pop_back();
-
-    // Overwrite the target with the last element
-    v[1] = v.back();
-
-    // Remove the duplicate last element
-    v.pop_back();
-
-    // insert vec values to set
-    files_.insert(v.begin(), v.end());
+    // remove the the script path, ext name and the input directory from the vector
+    if (v.size() >= 3) {
+        v.erase(v.begin(), v.begin() + 3);
+    }
 
     // debugging stuff
     // std::cout << extension_ << std::endl;
@@ -72,6 +63,17 @@ file_converter::file_converter(std::vector<std::string>& v) {
     // for (auto& e : v) {
     //     std::cout << e << std::endl;
     // }
+
+    // check if any files provided
+    if (v.empty()) {
+        // read the in_directory_ - will attempt to convert all files inside (including nested folders)
+        read_directory_contents_(in_directory_);
+
+    }
+    else {
+        // insert vec values to set
+        files_.insert(v.begin(), v.end());
+    }
 
     // turn off the menus and popups
     menu_ = false;
@@ -173,7 +175,7 @@ void file_converter::conversion_init() {
 
     // verify the directory if user entered in_directory_
     if (! in_directory_.empty()) {
-        if (! validate_directory(in_directory_)) {
+        if (! validate_directory_(in_directory_)) {
             display_error_("the provided directory: '" + in_directory_ + "' is invalid/does not exist !!!");
 
             main_menu_init_();
@@ -200,33 +202,45 @@ void file_converter::conversion_init() {
         return;
     }
 
+    // check if the output directory exists, if not try to create it
+    if (! validate_directory_(out_directory_)) {
+        create_directory_(out_directory_);
+    }
+
     // prep filesystem::path variables
     const std::filesystem::path in_directory_path(in_directory_);
     const std::filesystem::path out_directory_path(out_directory_);
     std::filesystem::path new_full_path {};
 
     // iterate through files
-    for (auto old_file_string : files_) {
+    for (const auto& old_file_string : files_) {
 
         // convert string -> filesystem::path
         std::filesystem::path old_file_path(old_file_string);
 
-        // get just the filename
-        std::filesystem::path filename = old_file_path.filename();
+        // // get just the filename
+        // std::filesystem::path filename = old_file_path.filename();
+
+        // get the old relative filepath
+        std::filesystem::path old_relative_filepath = std::filesystem::relative(old_file_path,in_directory_path);
 
         // replace filename extension
-        filename.replace_extension(extension_);
+        old_relative_filepath.replace_extension(extension_);
 
         // check if directory was provided
         if (! in_directory_.empty()) {
 
-            // here we assume that relative paths were provided
-            //
-            // create the old path
-            old_file_path = in_directory_path / old_file_path;
+            // check if it is a relative path
+            // if not it is a fullpath, no changes needed
+            if (old_file_path.is_relative()) {
+
+                // create the old path - from relative path
+                old_file_path = in_directory_path / old_file_path;
+            }
+
 
             // create the new path
-            new_full_path = out_directory_path / filename;
+            new_full_path = out_directory_path / old_relative_filepath;
 
         }
         else {
@@ -234,8 +248,13 @@ void file_converter::conversion_init() {
             // here we assume that full paths were provided
             //
             // create the new path
-            new_full_path = out_directory_path / filename;
+            new_full_path = out_directory_path / old_relative_filepath;
 
+        }
+
+        // check if we have the filestructure required, if not create the directories needed
+        if (! validate_directory_(new_full_path.parent_path())) {
+            create_directory_(new_full_path.parent_path().string());
         }
 
         // read the old file from disk
@@ -359,8 +378,16 @@ void file_converter::display_error_(const std::string &message) {
 /// @param message a success message to be displayed
 void file_converter::display_success_(const std::string &message) {
 
-        // display the message
-        std::cout << "✅ Success: " << message << std::endl;
+    // display the message
+    std::cout << "✅ Success: " << message << std::endl;
+}
+
+/// @brief displays an info message
+/// @param message an info message to be displayed
+void file_converter::display_info_(const std::string &message) {
+
+    // display the message
+    std::cout << "ℹ️ Info: " << message << std::endl;
 }
 
 /// @brief reads files from input, and places found files to #files  \n
@@ -381,13 +408,13 @@ void file_converter::read_files_() {
 }
 
 /// @brief reads the input directory from std input
-void file_converter::read_directory() {
+void file_converter::read_directory_() {
 
     // read input directly to #input_
     read_input_("directory, provide absolute path");
 
     // check if directory exists
-    if (validate_directory(input_)) {
+    if (validate_directory_(input_)) {
         in_directory_ = input_;
     }
     else {
@@ -423,6 +450,57 @@ std::string file_converter::trim_(const std::string& r) {
 
     // 3. Construct and return a new std::string from the view
     return std::string(trailing.begin(), trailing.end());
+}
+
+/// @brief attempts to read the contents of the directory,
+/// if successful places all found files to #files_
+/// @param dir full path of the directory to be read
+void file_converter::read_directory_contents_(const std::string &dir) {
+
+    try {
+        // loop throug items in dir
+        for (const auto& item : std::filesystem::directory_iterator(dir)) {
+
+            // item.path() gives you the full path object
+            const auto& current_path = item.path();
+
+            // Extract just the file/folder name (e.g., "image.png")
+            const std::string filename = current_path.filename().string();
+
+            // Check the type of the item
+            if (std::filesystem::is_directory(current_path)) {
+
+                // explore the nested dir
+                read_directory_contents_(current_path.string());
+
+            } else if (std::filesystem::is_regular_file(current_path)) {
+
+                // insert the file to files_
+                files_.insert(current_path.string());
+
+            } else {
+                display_info_("item: " + current_path.string() + " is not a directory and is not a file - skipping");
+            }
+        }
+    }
+    catch (const std::filesystem::filesystem_error& e) {
+        display_info_("Filesystem error: " + std::string(e.what()));
+    }
+}
+
+/// @brief tries to create a directory at a given path
+/// @param dir a fullpath to the created directory
+void file_converter::create_directory_(const std::string &dir) {
+    try {
+        if (std::filesystem::create_directories(dir)) {
+            display_info_("created output directory: " + dir);
+        } else {
+            display_info_("no directories needed to be created");
+        }
+    }
+    catch (const std::exception& e) {
+        display_error_("creating directory" + dir + "failed! " + e.what());
+    }
 }
 
 // menu handling
@@ -524,7 +602,7 @@ void file_converter::extension_menu_init_() {
 }
 
 /// @brief checks if directory exists
-bool file_converter::validate_directory(const std::string& dir) const {
+bool file_converter::validate_directory_(const std::string& dir) const {
 
     // // convert to std::filesystem::path
     // const std::filesystem::path path(input_);
@@ -560,8 +638,8 @@ void file_converter::file_menu_init_() {
         return;
     }
     if (result == 2) {
-        // read the directory
-        read_directory();
+        // read the directory from the input
+        read_directory_();
 
         // go back to Main menu
         main_menu_init_();

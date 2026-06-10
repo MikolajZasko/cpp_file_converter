@@ -1,10 +1,10 @@
-# cpp_file_converter
+# cpp_file_converter ⚙️
 A simple file converter program \
 (An extra project for "pp2")
 
 ---
 
-## Quick setup (Windows):
+## Quick setup (Windows): 💻
 
 1) Go to: https://github.com/opencv/opencv/releases
 2) Download the opencv-X.X.X-windows.exe (tested on 5.0.0)
@@ -18,7 +18,7 @@ A simple file converter program \
 
 ---
 
-## Quick setup (Linux):
+## Quick setup (Linux): 🐧
 
 ```bash
 # install OpenCV
@@ -27,7 +27,7 @@ sudo apt-get install libopencv-dev
 
 ---
 
-## Quick setup (MacOs):
+## Quick setup (MacOs):  🍎
 
 ```bash
 # install OpenCV
@@ -36,7 +36,7 @@ brew install opencv
 
 ---
 
-### Clion integration:
+### Clion integration: 🦁
 1) Ensure "File | Settings | Build, Execution, Deployment | Toolchains" is set to Visual Studio
 2) Example CmakeLists.txt:
 
@@ -68,7 +68,7 @@ target_link_libraries(file_converter ${OpenCV_LIBS})
 
 ---
 
-## Usage
+## Usage 🚀
 ```bash
 # for help
 fileconverter -h
@@ -76,13 +76,24 @@ fileconverter -h
 # open in menu mode (manually select files, provide extension etc)
 fileconverter
 
-# quickly convert files: <extension> <full_file_paths>
-fileconverter .png /path/to/file1 /path/to/file2 ...
+# quickest way to convert files:
+# fileconverter <output_format> <input_directory>
+# this will read recursively through the dir structure and try to convert all files encountered
+fileconverter .png /input/dir/path
+
+# convert files: <output_format> <input_directory> <relative file paths>
+fileconverter .png /input/dir/path  Image1 Image2 ...
 ```
 
 ---
 
-### Project structure
+## External libraries used 📦
+- OpenCV (5.0.0 - at the time of creation)
+- std::filesystem
+
+---
+
+### Project structure 📁
 
 ```text
 file-converter

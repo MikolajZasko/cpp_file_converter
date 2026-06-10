@@ -16,7 +16,7 @@ public:
     /// @brief default constructor
     file_converter();
 
-    /// @brief constructor with ext name and files
+    /// @brief constructor with ext name, input directory and files
     file_converter(std::vector<std::string>&);
 
     // getters
@@ -30,14 +30,14 @@ public:
      * * returns 1 => option on index 0 in vector options
      */
     int menu();
-    
+
     // setters
-    
+
     /// @brief preps the next menu #title_ and #options_
     void prep_menu(std::string new_title, std::vector<std::string> new_options);
 
     // conversion process
-    
+
     /// @brief starts the conversion process
     void conversion_init();
 
@@ -63,7 +63,7 @@ private:
 
     /// @brief stores the absolute path to the directory that the input files are in
     std::string in_directory_{};
-    
+
     /// @brief stores the output directory
     std::string out_directory_{};
 
@@ -91,7 +91,7 @@ private:
     bool validate_extension_();
 
     /// @brief checks if directory exists
-    bool validate_directory(const std::string&) const;
+    bool validate_directory_(const std::string&) const;
 
     /// @brief displays an error message and waits for "enter" key
     /// @param message an error message to be displayed
@@ -101,18 +101,31 @@ private:
     /// @param message a success message to be displayed
     void display_success_(const std::string& message);
 
+    /// @brief displays an info message
+    /// @param message an info message to be displayed
+    void display_info_(const std::string& message);
+
     /// @brief reads files from input, and places found files to #files  \n
     /// accepted separators: ',' / ' , ' etc.
     void read_files_();
 
     /// @brief reads the input directory from std input
-    void read_directory();
+    void read_directory_();
 
     /// returns a string containing all files separated by \n
     [[nodiscard]] std::string flatten_files_() const;
 
     /// @brief removes redundant whitespaces / C++20 ranges split - ai
     static std::string trim_(const std::string&);
+
+    /// @brief attempts to read the contents of the directory,
+    /// if successful places all found files to #files_
+    /// @param dir full path of the directory to be read
+    void read_directory_contents_(const std::string& dir);
+
+    /// @brief tries to create a directory at a given path
+    /// @param dir a fullpath to the created directory
+    void create_directory_(const std::string& dir);
 
     // menu handling
 
