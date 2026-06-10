@@ -3,6 +3,11 @@ A simple file converter program \
 (An extra project for "pp2")
 
 ---
+## Overview 🗺️
+
+![An overview of the project](gfx/overview.png)
+
+---
 
 ## Quick setup (Windows): 💻
 
