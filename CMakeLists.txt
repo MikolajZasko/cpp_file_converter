@@ -13,7 +13,8 @@ find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
 # 4. add cpp files
-add_executable(file_converter main.cpp file_converter.cpp)
+add_executable(file_converter main.cpp file_converter.cpp
+        messages.h)
 
 # 5. link the OpenCV libraries to your executable
 target_link_libraries(file_converter ${OpenCV_LIBS})

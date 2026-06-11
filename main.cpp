@@ -7,6 +7,7 @@
 #include <vector>
 #include <iostream>
 #include <opencv2/core/utils/logger.hpp>
+#include "messages.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -31,45 +32,13 @@ int main(int argc, char* argv[]) {
     for (auto& arg : args) {
         if (arg == "-h" || arg == "--help") {
             // display help message and exit
-            std::cout << R"(
-File Converter CLI Tool - convert images using OpenCV.
-
-Usage:
-  file_converter [options] <extension> <files>
-
-Options:
-  -h, --help        Show this help message and exit.
-
-Arguments:
-  <extension>       Target output image format (e.g., .png, .jpg, .bmp).
-  <files>           Full path to files separated by " "
-
-Examples:
-  Windows:
-      file_converter.exe .png C:\input\dir\path Image1 Image2   # converts 2 images to png (both have to be in C:\input\dir\path )
-      file_converter.exe .png C:\input\dir\path                 # reads the dir recursively and tries to convert all files to .png
-      file_converter.exe -h                                     # displays help
-      file_converter.exe                                        # runs the program with menus'
-
-  Linux:
-      file_converter .png /input/dir/path Image1 Image2     # converts 2 images to png (both have to be in /input/path)
-      file_converter .png /input/dir/path                   # reads the dir recursively and tries to convert all files to .png
-      file_converter -h                                     # displays help
-      file_converter                                        # runs the program with menus'
-
-Project structure:
-    file-converter
-    ├── 🙈 .gitignore                 # Git ignore rules
-    ├── 📐 CMakeLists.txt             # CMake build configuration
-    ├── 🧱 file_converter.cpp         # Core implementation logic
-    ├── 📑 file_converter.h           # Header declarations
-    ├── 🚀 main.cpp                   # Application entry point
-    ├── 📖 README.md                  # This file
-    ├── 📁 cmake-build-debug/         # CMake debug build directory (Windows)
-    │   └── 🖥️ file_converter.exe     # Compiled Windows executable (Windows)
-    └── 📁 out/                       # Default output directory
-)" << std::endl;
+            std::cout << Messages::HELP_STRING << std::endl;
             return 0;
+        }
+
+        // run with default settings (default in / out dir, only ext needed)
+        if (arg == "-m" || arg == "--menu") {
+            // implement this !!! ??? - update readme (gfx dir / in / out dirs - defaults)
         }
     }
 
