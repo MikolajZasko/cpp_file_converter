@@ -75,19 +75,22 @@ target_link_libraries(file_converter ${OpenCV_LIBS})
 
 ## Usage 🚀
 ```bash
-# quickest way to convert files:
-# fileconverter <output_format> <input_directory>
-# this will read recursively through the dir structure and try to convert all files encountered
-fileconverter .png /input/dir/path
+# DEFAULT USAGE
+# reads the dir recursively and tries to convert all files to .png
+# using the default in/out dirs located in <project-root>/in <project-root>/out
+.\file_converter .png
 
-# for help
-fileconverter -h
+# converts 2 images to png (both have to be in <input_dir_full_path>)
+.\file_converter .png <input_dir_full_path> Image1 Image2
 
-# open in menu mode (manually select files, provide extension etc)
-fileconverter
+# reads the dir recursively and tries to convert all files to .png
+.\file_converter .png <input_dir_full_path>
 
-# convert files: <output_format> <input_directory> <relative file paths>
-fileconverter .png /input/dir/path  Image1 Image2 ...
+# displays help
+.\file_converter -h
+
+# runs the app in menu mode
+.\file_converter -m
 ```
 
 ---

@@ -35,11 +35,11 @@ Examples:
       # using the default in/out dirs located in <project-root>/in <project-root>/out
       .\file_converter .png
 
-      # converts 2 images to png (both have to be in /input/path)
-      .\file_converter .png /input/dir/path Image1 Image2
+      # converts 2 images to png (both have to be in <input_dir_full_path>)
+      .\file_converter .png <input_dir_full_path> Image1 Image2
 
       # reads the dir recursively and tries to convert all files to .png
-      .\file_converter .png /input/dir/path
+      .\file_converter .png <input_dir_full_path>
 
       # displays help (this message)
       .\file_converter -h
