@@ -14,8 +14,11 @@ public:
 
     // constructors
 
-    /// @brief default constructor
+    /// @brief default constructor - menu mode
     file_converter();
+
+    /// @brief constructor with ext name - default mode
+    explicit file_converter(std::string& ext);
 
     /// @brief constructor with ext name, input directory and files
     explicit file_converter(std::vector<std::string>&);

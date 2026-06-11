@@ -29,15 +29,17 @@ Arguments:
 
 Examples:
   Windows (.exe file) / Linux (no .exe) :
+
+      # DEFAULT USAGE
+      # reads the dir recursively and tries to convert all files to .png
+      # using the default in/out dirs located in <project-root>/in <project-root>/out
+      .\file_converter .png
+
       # converts 2 images to png (both have to be in /input/path)
       .\file_converter .png /input/dir/path Image1 Image2
 
       # reads the dir recursively and tries to convert all files to .png
       .\file_converter .png /input/dir/path
-
-      # reads the dir recursively and tries to convert all files to .png
-      # using the default in/out dirs located in <project-root>/in <project-root>/out
-      .\file_converter .png
 
       # displays help (this message)
       .\file_converter -h
@@ -59,6 +61,13 @@ Project structure:
     ├── 📁 out/                       # Default output directory
     ├── 📁 in/                        # Default input directory
     └── 📁 gfx/                       # Holds graphics (for README.md for example)
+)";
+
+    inline constexpr std::string_view NO_ARGS_MESSAGE =
+        R"(
+
+You need to provide at least the target extension !!!
+
 )";
 }
 

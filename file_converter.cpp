@@ -17,7 +17,7 @@ namespace fs = std::filesystem;
 
 // constructors
 
-/// @brief default constructor
+/// @brief default constructor - menu mode
 file_converter::file_converter() {
 
     // init the default out directory
@@ -36,13 +36,46 @@ file_converter::file_converter() {
     main_menu_init_();
 }
 
+/// @brief constructor with ext name - default mode
+file_converter::file_converter(std::string& ext) {
+    // init the default out directory
+    fs::path project_root(__FILE__);
+
+    // get just the directory (without main.exe)
+    project_root.remove_filename();
+
+    out_directory_ = (project_root/ "out").string();
+
+    in_directory_ = (project_root/ "in").string();
+
+    // get the right extension (even if for example just "png" was provided)
+    input_ = ext;
+
+    if (! validate_extension_()) {
+        // input makes no sense
+        display_error_("Invalid extension: " + input_);
+
+        exit(0);
+    }
+
+    extension_ = input_;
+
+    menu_ = false;
+
+    // read the in_directory_ - will attempt to convert all files inside (including nested folders)
+    read_directory_contents_(in_directory_);
+
+    // start the conversion
+    conversion_init();
+}
+
 /// @brief constructor with ext name, input directory and files
 file_converter::file_converter(std::vector<std::string>& v) {
 
     // init the default out directory
     fs::path source_file_path(__FILE__);
 
-    // get just the directory (without man.exe)
+    // get just the directory (without main.exe)
     source_file_path.remove_filename();
 
     source_file_path = source_file_path/ "out";
@@ -61,12 +94,12 @@ file_converter::file_converter(std::vector<std::string>& v) {
     }
 
     // debugging stuff
-    std::cout << extension_ << std::endl;
-    std::cout << out_directory_ << std::endl;
-
-    for (auto& e : v) {
-        std::cout << e << std::endl;
-    }
+    // std::cout << extension_ << std::endl;
+    // std::cout << out_directory_ << std::endl;
+    //
+    // for (auto& e : v) {
+    //     std::cout << e << std::endl;
+    // }
 
     // check if any files provided
     if (v.size() == 0) {
@@ -198,13 +231,16 @@ void file_converter::conversion_init() {
     }
 
     // check if user provided any files
-    if (files_.empty()) {
-        display_error_("no files provided");
+    if (menu_) {
+        if (files_.empty()) {
+            display_error_("no files provided");
 
-        main_menu_init_();
+            main_menu_init_();
 
-        return;
+            return;
+        }
     }
+
 
     // check if the output directory exists, if not try to create it
     if (! validate_directory_(out_directory_)) {

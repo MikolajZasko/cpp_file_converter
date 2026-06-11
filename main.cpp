@@ -31,29 +31,45 @@ int main(int argc, char* argv[]) {
 
     for (auto& arg : args) {
         if (arg == "-h" || arg == "--help") {
+
             // display help message and exit
             std::cout << Messages::HELP_STRING << std::endl;
             return 0;
         }
 
-        // run with default settings (default in / out dir, only ext needed)
+        // menu mode
         if (arg == "-m" || arg == "--menu") {
-            // implement this !!! ??? - update readme (gfx dir / in / out dirs - defaults)
+
+            // start 1 instance of the file converter
+            file_converter f;
+            return 0;
         }
     }
 
     // check if any args provided
-    if (argc > 1) {
+    if (argc == 2) {
+        // run with default settings (default in / out dir, only ext needed)
+
+        file_converter f(args[1]);
+        return 0;
+
+    }
+    else if (argc > 1) {
+        // multiple arguments
 
         // first is the extension
         // second is the directory
         // all the rest are files
         file_converter f(args);
 
+        return 0;
     }
     else {
-        // start 1 instance of the file converter
-        file_converter f;
+        // no arguments
+
+        std::cout << Messages::NO_ARGS_MESSAGE << std::endl;
+
+        return 0;
     }
 
     return 0;
